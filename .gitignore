@@ -134,7 +134,8 @@ ENV/
 env.bak/
 venv.bak/
 lc-academy-env/
-
+.history/
+*.pckl
 # Spyder project settings
 .spyderproject
 .spyproject
