@@ -5,7 +5,6 @@
 }}}%%
 graph TD
     subgraph FinancialAdvisorAgent ["FINANCIAL ADVISOR AGENT"]
-             
         direction LR
         A[User Query] --> B(agent: LLM Brain);
         B -- "Needs info/delegate?" --> C[custom_tool_node];
@@ -27,7 +26,6 @@ graph TD
     end
 
     subgraph PDF-Form-Filler-Agent [Specialized Agent: PDF Form Filler -Async]
-        direction LR
         G[A2A Endpoints]
         subgraph API_Endpoints [FastAPI Server]
             direction TB
@@ -43,22 +41,23 @@ graph TD
         J(A2A Endpoint);
     end
 
-    %% A2A Communication Links
-    C3 -.-> G1;
-    C4 -.-> G2;
-    G1 -.-> C3;
-    G2 -.-> C4;
-    
-%% Soft readable color styles
-style FinancialAdvisorAgent fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000000
-style FinancialAdvisorAgent fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000000
-style A2A_Client_Logic fill:#3
-326,stroke:#1976d2,stroke-width:2px,color:#000000
-style PDF-Form-Filler-Agent fill:#f1f8e9,stroke:#388e3c,stroke-width:2px,color:#000000
+    %% A2A Communication Links with complementary colors
+    C3 -.->|A2A Submit| G1;
+    C4 -.->|A2A Poll| G2;
+    G1 -.->|A2A Ack| C3;
+    G2 -.->|A2A Result| C4;
+
+%% Node background and text colors for readability
+style FinancialAdvisorAgent fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#0d133d
+style A2A_Client_Logic fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#263238
+style PDF-Form-Filler-Agent fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
 style F fill:#fff3e0,stroke:#fbc02d,stroke-width:2px,color:#263238
 
-
-
+%% Complementary link colors
+linkStyle 2,3 stroke:#d32f2f,stroke-width:3px,color:#d32f2f
+linkStyle 4,5 stroke:#1976d2,stroke-width:3px,color:#1976d2
+linkStyle 6,7,8,9 stroke:#1a237e,stroke-width:3px,color:#1a237e
+linkStyle 6,7,8,9,10,11,12,13,14,15 stroke:#ff4315,stroke-width:3px,color:#d84315
 ```
 Very Important:
 https://cloud.google.com/blog/products/ai-machine-learning/build-multimodal-agents-using-gemini-langchain-and-langgraph
