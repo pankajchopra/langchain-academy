@@ -47,30 +47,51 @@ Next, create a RestController to handle the SSE endpoint. This controller will r
 src/main/java/com/example/sseserver/SseController.java
 
 ```Java
-
 package com.example.sseserver;
 
-import org.springframework.http.MediaType;  
-import org.springframework.http.codec.ServerSentEvent;  
-import org.springframework.web.bind.annotation.GetMapping;  
-import org.springframework.web.bind.annotation.RestController;  
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-import java.time.Duration;  
-import java.time.LocalTime;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Random;
 
-@RestController  
+@RestController
 public class SseController {
 
-    @GetMapping(path = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)  
-    public Flux<ServerSentEvent<String>> sse() {  
-        return Flux.interval(Duration.ofSeconds(1))  
-                .map(sequence -> ServerSentEvent.<String>builder()  
-                        .id(String.valueOf(sequence))  
-                        .event("sse-event")  
-                        .data("SSE event at " + LocalTime.now())  
-                        .build());  
-    }  
+    private static final Random random = new Random();
+
+    @GetMapping(path = "/sse-json", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<Object>> sse() {
+        // Stream for stock updates every 2 seconds
+        Flux<ServerSentEvent<Object>> stockStream = Flux.interval(Duration.ofSeconds(2))
+                .map(sequence -> {
+                    double price = 100 + random.nextDouble(10); // Random price between 100 and 110
+                    StockUpdate stockUpdate = new StockUpdate("GGL", price, Instant.now().toEpochMilli());
+                    return ServerSentEvent.builder()
+                            .id(String.valueOf(sequence))
+                            .event("stock-update")
+                            .data(stockUpdate)
+                            .build();
+                });
+
+        // Stream for system notifications every 5 seconds
+        Flux<ServerSentEvent<Object>> notificationStream = Flux.interval(Duration.ofSeconds(5))
+                .map(sequence -> {
+                    SystemNotification notification = new SystemNotification("INFO", "System health is nominal.", Instant.now().toEpochMilli());
+                    return ServerSentEvent.builder()
+                            .id(String.valueOf(sequence))
+                            .event("system-notification")
+                            .data(notification)
+                            .build();
+                });
+        
+        // Merge the two streams into one
+        return Flux.merge(stockStream, notificationStream);
+    }
 }
 ```
 
@@ -135,41 +156,66 @@ Create an Angular service to encapsulate the logic for connecting to the SSE end
 src/app/sse.service.ts
 
 ```TypeScript
-
-import { Injectable, NgZone } from '@angular/core';  
+import { Injectable, NgZone } from '@angular/core';
 import { Observable } from 'rxjs';
 
-@Injectable({  
-  providedIn: 'root'  
-})  
-export class SseService {  
-  private eventSource\!: EventSource;
+@Injectable({
+  providedIn: 'root'
+})
+export class SseService {
+  private eventSource!: EventSource;
 
   constructor(private zone: NgZone) {}
 
-  getServerSentEvent(url: string): Observable<any> {  
-    return new Observable(observer => {  
+  observeMessages(url: string): Observable<string> {
+    return new Observable(observer => {
       this.eventSource = new EventSource(url);
 
-      this.eventSource.onmessage = event => {  
-        this.zone.run(() => {  
-          observer.next(event);  
-        });  
+      this.eventSource.onmessage = event => {
+        this.zone.run(() => {
+          observer.next(event.data);
+        });
       };
 
-      this.eventSource.onerror = error => {  
-        this.zone.run(() => {  
-          observer.error(error);  
-        });  
-      };  
-    });  
+      this.eventSource.onerror = error => {
+        this.zone.run(() => {
+          observer.error(error);
+        });
+      };
+    });
   }
 
-  closeEventSource() {  
-    if (this.eventSource) {  
-      this.eventSource.close();  
-    }  
-  }  
+  // Generic method to listen for any named event
+  observeNamedEvent(url: string, eventName: string): Observable<string> {
+    return new Observable(observer => {
+      // Ensure we only have one EventSource connection
+      if (!this.eventSource) {
+        this.eventSource = new EventSource(url);
+      }
+
+      const eventListener = (event: MessageEvent) => {
+        this.zone.run(() => {
+          observer.next(event.data);
+        });
+      };
+
+      this.eventSource.addEventListener(eventName, eventListener);
+
+      // Return a teardown function to remove the listener
+      return () => {
+        if (this.eventSource) {
+          this.eventSource.removeEventListener(eventName, eventListener);
+        }
+      };
+    });
+  }
+
+
+  close() {
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+  }
 }
 ```
 
@@ -182,51 +228,68 @@ Finally, create a component that uses the SseService to subscribe to events and 
 src/app/app.component.ts
 
 ```TypeScript
-
-import { Component, OnDestroy } from '@angular/core';  
-import { SseService } from './sse.service';  
+import { Component, OnDestroy } from '@angular/core';
+import { SseService } from './sse.service';
 import { Subscription } from 'rxjs';
 
-@Component({  
-  selector: 'app-root',  
-  templateUrl: './app.component.html',  
-  styleUrls: \['./app.component.css'\]  
-})  
-export class AppComponent implements OnDestroy {  
-  title = 'angular-sse-client';  
-  messages: string\[\] = \[\];  
-  private subscription: Subscription;
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnDestroy {
+  stockUpdates: any[] = [];
+  notifications: any[] = [];
+  private subscriptions = new Subscription();
+  private readonly sseUrl = 'http://localhost:8080/sse-json';
 
-  constructor(private sseService: SseService) {  
-    this.subscription = this.sseService.getServerSentEvent('http://localhost:8080/sse')  
-      .subscribe({  
-        next: (event: MessageEvent) => {  
-          this.messages.push(event.data);  
-        },  
-        error: (error) => {  
-          console.error('SSE error:', error);  
-        }  
-      });  
+
+  constructor(private sseService: SseService) {
+    // Subscribe to stock updates
+    const stockSub = this.sseService.observeNamedEvent(this.sseUrl, 'stock-update')
+      .subscribe(data => {
+        const parsedData = JSON.parse(data);
+        this.stockUpdates.push(parsedData);
+      });
+
+    // Subscribe to system notifications
+    const notificationSub = this.sseService.observeNamedEvent(this.sseUrl, 'system-notification')
+      .subscribe(data => {
+        const parsedData = JSON.parse(data);
+        this.notifications.push(parsedData);
+      });
+    
+    this.subscriptions.add(stockSub);
+    this.subscriptions.add(notificationSub);
   }
 
-  ngOnDestroy() {  
-    this.subscription.unsubscribe();  
-    this.sseService.closeEventSource();  
-  }  
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    this.sseService.close();
+  }
 }
 ```
 
 src/app/app.component.html
 
 ```HTML
-
-<div>  
-  <h1>Server-Sent Events</h1>  
-  <ul>  
-    <li \*ngFor="let message of messages">  
-      {{ message }}  
-    </li>  
-  </ul>  
+<div style="display: flex; gap: 50px;">
+  <div>
+    <h2>Stock Updates (GGL)</h2>
+    <ul>
+      <li *ngFor="let stock of stockUpdates">
+        Price: {{ stock.price | number:'1.2-2' }} @ {{ stock.timestamp | date:'mediumTime' }}
+      </li>
+    </ul>
+  </div>
+  <div>
+    <h2>System Notifications</h2>
+    <ul>
+      <li *ngFor="let notification of notifications">
+        {{ notification.level }}: {{ notification.message }} @ {{ notification.timestamp | date:'mediumTime' }}
+      </li>
+    </ul>
+  </div>
 </div>
 ```
 
@@ -245,7 +308,36 @@ src/app/app.component.html
    * Then run: ng serve  
    * Open your browser to http://localhost:4200.
 
-You will see a list of events from the server, updated in real-time.
+
+Handling Connection Breaks
+One of the best features of SSE is its built-in error handling for broken connections.
+
+You don't have to do anything in the code for this to work.
+
+If the connection between the client and server is interrupted (e.g., you stop and restart the Spring Boot server), the browser's 
+
+EventSource API will automatically attempt to reconnect to the server.
+
+How it Works:
+When a connection is lost, the EventSource object enters a "reconnecting" state.
+
+By default, it waits about 3 seconds before trying to establish a new connection.
+
+Upon reconnecting, the client can optionally send a 
+
+Last-Event-ID header to the server, letting the server know the last event the client received. This allows the server to resend any missed messages. Our current code doesn't use this feature, but it's available for scenarios requiring guaranteed delivery.
+
+You can test this yourself:
+
+Run both the backend and frontend.
+
+Stop the Spring Boot application.
+
+You will see the data stream stop in the browser.
+
+Restart the Spring Boot application.
+
+After a few seconds, you will see the browser automatically reconnect and the data stream will resume.
 
 **Sources**  
 
