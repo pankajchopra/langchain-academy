@@ -130,7 +130,8 @@ async def event_generator(request: Request, task_id: str):
                 "data": json.dumps({"task_id": task_id, "status": task_status, "result": final_result})
             }
             # Clean up the completed task from storage
-            del task_storage[task_id]
+            if task_id in task_storage:
+                del task_storage[task_id]
             break
         
         # Wait for a short period before checking the status again
