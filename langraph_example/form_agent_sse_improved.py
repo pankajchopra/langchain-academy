@@ -134,6 +134,7 @@ def run_agent(query: str):
             print(last_message.content)
             print("----------------------\n")
 
+#nochanges
 if __name__ == "__main__":
     if not os.getenv("OPENAI_API_KEY"):
         print("Error: OPENAI_API_KEY environment variable not set.")
