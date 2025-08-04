@@ -1,0 +1,87 @@
+INSTRUCTIONS FOR AUDIO OVERVIEW:
+
+Please follow the existing defined guidelines and also incorporate the following:
+
+In this talk, primary Focus is on ADK:
+Go thru all sources and provide a list of things we are going o discuss
+Things to try:
+Focus on a beginner AI Engineer also touch the technical side to satisfy Advance  AI Engineer.
+At the start give the main topics this discussion are going to be discussed.
+After finishing one topic summarize and then move to the next connecting the two 
+
+Example:
+Start briefly: Talk that we are assuming the listener knows what an agent is used one of the framework either autogen or Langgraph. . Then the LLM directs the Agent to use the tool LLM has list of tools and what arguments it needs. Explain what is LLM function calling where it is available
+
+Then keep adding technical details in the conversation; examples of  A2A calls describing the structure  slowly each element. Covering the Transport agnostic nature of A2A, technically explaining each way A2A can be invoked. How both agents talk with each other after they findout about each other from Registry.
+
+Cover design principles do not miss any. It has to be very understand;e
+
+At then End Provide the brief Summary all we discussed from start to end
+AI Engineer
+
+https://www.speakeasy.com/mcp/ai-agents/architecture-patterns
+INSTRUCTIONS FOR AUDIO OVERVIEW:
+
+Please follow the existing defined guidelines and also incorporate the following:
+
+In this talk, primary Focus is on ADK:
+Go thru all sources and provide a list of things we are going o discuss
+Things to try:
+Focus on a beginner AI Engineer also touch the technical side to satisfy Advance  AI Engineer.
+At the start give the main topics this discussion are going to be discussed.
+After finishing one topic summarize and then move to the next connecting the two 
+
+Example:
+At a high level, ADK’s architecture is designed around several key components that work together to create functional agent systems:
+
+Core Components:
+Agents: The central entities that make decisions and take actions. ADK supports various types of agents, including LLM-powered agents and workflow agents that orchestrate others.
+Tools: Functions or capabilities that agents can use to perform specific actions, such as searching the web, executing code, or retrieving information from databases.
+Runners: Components that manage the execution flow of agents, handling the orchestration of messages, events, and state management.
+Sessions: Maintain the context and state of conversations, allowing agents to persist information across interactions.
+Events: The communication mechanism between components in the system, representing steps in agent execution.
+Architectural Patterns:
+ADK is built around a flexible, event-driven architecture that enables:
+
+Modular Design: Components can be combined and reconfigured to create different agent behaviors
+Extensibility: The system can be extended with new tools, models, and agent types
+Separation of Concerns: Clear boundaries between reasoning (agents), capabilities (tools), execution (runners), and state management (sessions)
+This architecture allows developers to focus on defining what their agents should do, while ADK handles the complex orchestration of execution, communication, and state management.
+
+Getting Started with ADK
+Creating Your First Basic Agent
+Building LLM Agent
+Workflow Agents
+*SequentialAgent
+*ParallelAgent
+*Loop Agent
+*Custom Agent
+Configuring an Agent: Models, Instructions, Descriptions
+
+Then keep adding technical details in the conversation; examples of  ADK describing that agents will be created, what workflow agents need to be created. 
+
+
+Cover design principles do not miss any. It has to be very understand;e
+
+At then End Provide the brief Summary all we discussed from start to end.
+At the end say next we will be discussing a system in which we will doing a deep dive in an agentic architecture w=that nvolves MCP, LangGraph, ADK, A2A and tools.
+
+https://www.speakeasy.com/mcp/ai-agents/architecture-patterns
+
+https://google.github.io/adk-docs/events/
+https://google.github.io/adk-docs/sessions/session/
+https://google.github.io/adk-docs/sessions/state/
+https://google.github.io/adk-docs/sessions/memory/
+
+https://google.github.io/adk-docs/sessions/express-mode/
+
+https://google.github.io/adk-docs/agents/multi-agents/
+https://google.github.io/adk-docs/tutorials/agent-team/
+
+LangGraph vs ADK
+Main difference between these two
+Going down in technical details with examples
+When to use ADK and when to use LangGraph
+How to use A2A with LangGraph
+--
+https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/

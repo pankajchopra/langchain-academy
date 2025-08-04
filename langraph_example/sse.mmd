@@ -1,0 +1,62 @@
+%%{init: {"themeVariables": {
+  "fontSize": "24px",
+  "fontFamily": "Arial, sans-serif"
+}}}%%
+graph TD
+    subgraph FinancialAdvisorAgent [Supervisor Financial_Advisor_Agent]
+        direction LR
+        A[User Query] <-.-> B(Chatbot Agent<BR/> LLM With Tools);
+        B -- "Needs info/delegate?" --> C[custom_tool_node];
+        
+        subgraph A2A_Client_Logic [Inside custom_tool_node]
+            direction TB
+            C1{Tool Call?}
+            C1 -- "get_client_profile" --> C2[Execute get_client_profile];
+            C1 -- "get_account_details" --> C2-1[Execute get_account_details];
+            C1 -- "get_account_from_crm" --> C2-2[Execute get_account_from_crm];
+            C1 -- "get_account_from_infomax" --> C2-3[Execute get_account_from_infomax];
+            C1 -- "delegate_task" --> C3[1 POST /stream_task];
+        end
+
+        C --> D[Update State];
+        D --> B;
+
+        B -- "Ready to answer?" --> E{responsible_ai_filter};
+        E -- "Validation Fails" --> B;
+        E -- "Validation Passes" --> F([Final Answer]);
+    end
+
+    subgraph PDF-Form-Filler-Agent [PDF&nbsp;Form&nbsp;Filler&nbsp;with_SSE]
+        G1["/stream_task (POST)"];
+        
+        G1 --> H1[1 Create Task & Open SSE Connection];
+        H1 -- "Connection Opened" --> C3;
+        H1 --> H2[2 Start Background Thread];
+        
+        subgraph Background_Workflow [Internal Agent Logic]
+        
+            H2 --> I(Run Internal LangGraph Agent);
+            I --> I1[Use Tools: Fetch PDF, Fill Form];
+            I1 --> I2[3 Push 'COMPLETED' event via SSE];
+        end
+
+        I2 -- "Pushed Update" --> C3;
+    end
+    
+    subgraph ClientContextAgent_Placeholder [Future: ClientContextAgent]
+        style ClientContextAgent_Placeholder fill:#f0f0f0,stroke:#999,stroke-dasharray: 5 5
+        J(A2A Endpoint);
+    end
+
+    %% A2A Communication Links
+    C3 -.-> G1;
+    
+    %% Styling
+    style FinancialAdvisorAgent fill:#e6f3ff,stroke:#333,stroke-width:2px
+    style PDF-Form-Filler-Agent fill:#d4edda,stroke:#155724,stroke-width:2px
+    style F fill:#f8d7da,stroke:#721c24,stroke-width:2px%% Complementary link colors
+
+linkStyle 2,3 stroke:#d32f2f,stroke-width:3px,color:#d32f2f
+linkStyle 4,5 stroke:#1976d2,stroke-width:3px,color:#1976d2
+linkStyle 6,7,8,9 stroke:#1a237e,stroke-width:3px,color:#1a237e
+linkStyle 6,7,8,9,10,11,12,13,14,15 stroke:#ff4315,stroke-width:3px,color:#d84315
