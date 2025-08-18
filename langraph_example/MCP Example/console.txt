@@ -1,0 +1,278 @@
+C:; cd 'C:\Users\panka\projects\langchain-academy\langchain-academy/langraph_example/MCP Example'; & 'c:\Users\panka\projects\langchain-academy\langchain-academy\lc-academy-env\Scripts\python.exe' 'c:\Users\panka\.vscode\extensions\ms-python.debugpy-2025.10.0-win32-x64\bundled\libs\debugpy\launcher' '54048' '--' 'C:\Users\panka\projects\langchain-academy\langchain-academy/langraph_example/MCP Example/main.py' 
+🚀 Starting Fully Async LangGraph MCP Integration Demo...
+
+📋 Section 1: Setting up ASYNC LOCAL TOOLS...
+✅ Created 2 async local tools: ['calculate_fibonacci', 'format_text_stylish']
+
+🔌 Section 2: Setting up ASYNC MCP SERVER MANAGEMENT...
+
+🔌 Section 3: Setting up ASYNC MCP CLIENT...
+🚀 Starting fully async demonstration...
+
+================================================================================
+🎯 FULLY ASYNC LANGGRAPH MCP INTEGRATION DEMONSTRATION
+================================================================================
+✅ Resource monitoring started
+
+🔧 Section 4: Creating ASYNC UNIFIED TOOLSET...
+🔄 Not found production MCP client so creating a new development
+🚀 Starting MCP servers...
+   Found stdio-math-mcp-server.py, starting HTTP server...
+   Found streamable-http-weather-mcp-server.py, starting HTTP server...
+   Waiting for MCP servers to initialize...
+
+📊 System Resources:
+   CPU Usage: 37.9%
+   Memory: 52.2% (16.6GB)
+   Disk: 90.9% (432.2GB)
+🔧 Starting stdio server: math_server
+🌐 Starting HTTP server: weather_server on port 8000
+HTTP server task completed: <Task pending name='Task-6' coro=<AsyncMCPServerManager.start_http_server.<locals>.run_server() running at C:\Users\panka\projects\langchain-academy\langchain-academy/langraph_example/MCP Example/main.py:130> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+✅ Started stdio server math_server with PID: 12900
+✅ Started HTTP server weather_server on port 8000
+
+📊 System Resources:
+   CPU Usage: 30.8%
+   Memory: 52.5% (16.7GB)
+   Disk: 90.9% (432.2GB)
+📡 Initializing MultiServerMCPClient...
+   - math_server: stdio transport (local subprocess)
+   - weather_server: streamable_http transport (remote HTTP)
+🔍 Fetching tools from MCP servers...
+c:\Users\panka\.vscode\extensions\ms-python.debugpy-2025.10.0-win32-x64\bundled\libs\debugpy\_vendored\pydevd\_pydevd_bundle\pydevd_suspended_frames.py:429: RuntimeWarning: coroutine 'MultiServerMCPClient.get_tools' was never awaited
+  self._variable_reference_to_variable.clear()
+Object allocated at (most recent call last):
+  File "<string>", lineno 1
+
+📊 System Resources:
+   CPU Usage: 22.1%
+   Memory: 52.6% (16.7GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:mcp.client.streamable_http:Received session ID: 02bde5bf808f456493d536578df57bd7
+INFO:mcp.client.streamable_http:Negotiated protocol version: 2025-06-18
+INFO:httpx:HTTP Request: GET http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 202 Accepted"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: DELETE http://localhost:8000/mcp "HTTP/1.1 200 OK"
+
+📊 System Resources:
+   CPU Usage: 37.4%
+   Memory: 52.8% (16.8GB)
+   Disk: 90.9% (432.2GB)
+
+📊 System Resources:
+   CPU Usage: 60.8%
+   Memory: 53.0% (16.9GB)
+   Disk: 90.9% (432.2GB)
+   Raw MCP tools response: [StructuredTool(name='add', description='Add two numbers together and return the result asynchronously.', args_schema={'properties': {'a': {'title': 'A', 'type': 'integer'}, 'b': {'title': 'B', 'type': 'integer'}}, 'required': ['a', 'b'], 'title': 'addArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D4AE80>), StructuredTool(name='multiply', description='Multiply two numbers together and return the result asynchronously.', args_schema={'properties': {'a': {'title': 'A', 'type': 'integer'}, 'b': {'title': 'B', 'type': 'integer'}}, 'required': ['a', 'b'], 'title': 'multiplyArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D70B80>), StructuredTool(name='subtract', description='Subtract second number from first number and return the result asynchronously.', args_schema={'properties': {'a': {'title': 'A', 'type': 'integer'}, 'b': {'title': 'B', 'type': 'integer'}}, 'required': ['a', 'b'], 'title': 'subtractArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D71E40>), StructuredTool(name='divide', description='Divide first number by second number and return the result asynchronously.', args_schema={'properties': {'a': {'title': 'A', 'type': 'integer'}, 'b': {'title': 'B', 'type': 'integer'}}, 'required': ['a', 'b'], 'title': 'divideArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D707C0>), StructuredTool(name='power', description='Calculate a to the power of b asynchronously.', args_schema={'properties': {'a': {'title': 'A', 'type': 'integer'}, 'b': {'title': 'B', 'type': 'integer'}}, 'required': ['a', 'b'], 'title': 'powerArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D71B20>), StructuredTool(name='get_weather', description='Get current weather information for the specified location asynchronously.', args_schema={'properties': {'location': {'title': 'Location', 'type': 'string'}}, 'required': ['location'], 'title': 'get_weatherArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC3A18A480>), StructuredTool(name='get_forecast', description='Get weather forecast for the specified location over the next few days asynchronously.', args_schema={'properties': {'location': {'title': 'Location', 'type': 'string'}, 'days': {'default': 3, 'title': 'Days', 'type': 'integer'}}, 'required': ['location'], 'title': 'get_forecastArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D72C00>), StructuredTool(name='get_weather_alerts', description='Get weather alerts and warnings for the specified location asynchronously.', args_schema={'properties': {'location': {'title': 'Location', 'type': 'string'}}, 'required': ['location'], 'title': 'get_weather_alertsArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D73600>), StructuredTool(name='get_air_quality', description='Get air quality index information for the specified location asynchronously.', args_schema={'properties': {'location': {'title': 'Location', 'type': 'string'}}, 'required': ['location'], 'title': 'get_air_qualityArguments', 'type': 'object'}, response_format='content_and_artifact', coroutine=<function convert_mcp_tool_to_langchain_tool.<locals>.call_tool at 0x000002AC41D73060>)]
+c:\Users\panka\.vscode\extensions\ms-python.debugpy-2025.10.0-win32-x64\bundled\libs\debugpy\_vendored\pydevd\_pydevd_bundle\pydevd_suspended_frames.py:429: RuntimeWarning: coroutine 'MultiServerMCPClient.get_tools' was never awaited
+  self._variable_reference_to_variable.clear()
+Object allocated at (most recent call last):
+  File "<string>", lineno 1
+✅ Retrieved 9 tools from MCP servers:
+   - add: Add two numbers together and return the result asynchronously.
+   - multiply: Multiply two numbers together and return the result asynchronously.
+   - subtract: Subtract second number from first number and return the result asynchronously.
+   - divide: Divide first number by second number and return the result asynchronously.
+   - power: Calculate a to the power of b asynchronously.
+   - get_weather: Get current weather information for the specified location asynchronously.
+   - get_forecast: Get weather forecast for the specified location over the next few days asynchronously.
+   - get_weather_alerts: Get weather alerts and warnings for the specified location asynchronously.     
+   - get_air_quality: Get air quality index information for the specified location asynchronously.      
+
+🎯 ASYNC UNIFIED TOOLSET CREATED:
+   - Local tools: 2 tools
+   - MCP tools: 9 tools
+   - Total unified tools: 11 tools
+
+🔍 All tools available to the agent:
+   1. calculate_fibonacci (LOCAL) - Calculate the nth Fibonacci number using async iterative approach.  
+   2. format_text_stylish (LOCAL) - Format text with different styles: bold, italic, underline, or uppercase.
+   3. add (MCP) - Add two numbers together and return the result asynchronously.
+   4. multiply (MCP) - Multiply two numbers together and return the result asynchronously.
+   5. subtract (MCP) - Subtract second number from first number and return the result asynchronously.   
+   6. divide (MCP) - Divide first number by second number and return the result asynchronously.
+   7. power (MCP) - Calculate a to the power of b asynchronously.
+   8. get_weather (MCP) - Get current weather information for the specified location asynchronously.    
+   9. get_forecast (MCP) - Get weather forecast for the specified location over the next few days asynchronously.
+   10. get_weather_alerts (MCP) - Get weather alerts and warnings for the specified location asynchronously.
+   11. get_air_quality (MCP) - Get air quality index information for the specified location asynchronously.
+⏱️  Async setup completed in 35.360 seconds
+
+🤖 Section 5: Building ASYNC LANGGRAPH AGENT with ToolNode...
+🧠 Initializing LLM: OpenAI GPT-4.1 Preview...
+✅ OPENAI_API_KEY available (last 4 chars: S3oA)
+🔗 Bound 11 tools to model
+⚙️ Created async ToolNode for unified tool execution
+📊 Building async LangGraph workflow...
+✅ Async LangGraph agent compiled successfully!
+⏱️  Async agent creation completed in 20.281 seconds
+
+🎪 Section 6: Running ASYNC DEMONSTRATIONS...
+
+============================================================
+🧪 ASYNC TEST 1: Async Local Tool Test - Fibonacci
+🔍 Query: Calculate the 15th Fibonacci number
+🎯 Expected tools: calculate_fibonacci
+============================================================
+
+📊 System Resources:
+   CPU Usage: 22.2%
+   Memory: 52.9% (16.8GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+📤 ASYNC RESPONSE:
+   The 15th Fibonacci number is 610.
+⏱️  Execution time: 5.438 seconds
+
+🔧 Async tool calls made:
+   - calculate_fibonacci: {'n': 15}
+
+============================================================
+🧪 ASYNC TEST 2: Async Local Tool Test - Text Formatting
+🔍 Query: Format the text 'Async LangGraph' in bold style
+🎯 Expected tools: format_text_stylish
+============================================================
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+📤 ASYNC RESPONSE:
+   The text "Async LangGraph" has been formatted in bold style.
+⏱️  Execution time: 1.813 seconds
+
+🔧 Async tool calls made:
+   - format_text_stylish: {'text': 'Async LangGraph', 'style': 'bold'}
+
+🔧 Async tool calls made:
+   - format_text_stylish: {'text': 'Async LangGraph', 'style': 'bold'}
+
+============================================================
+🧪 ASYNC TEST 3: Async MCP Tool Test - Math Operations
+🔍 Query: What is 25 + 37, then multiply that result by 4?
+🎯 Expected tools: add, multiply
+============================================================
+============================================================
+
+📊 System Resources:
+   CPU Usage: 22.9%
+   Memory: 52.9% (16.9GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+📊 System Resources:
+   CPU Usage: 21.6%
+   Memory: 53.0% (16.9GB)
+   Disk: 90.9% (432.2GB)
+
+📊 System Resources:
+   CPU Usage: 42.1%
+   Memory: 53.1% (16.9GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+📊 System Resources:
+   CPU Usage: 24.6%
+   Memory: 53.0% (16.9GB)
+   Disk: 90.9% (432.2GB)
+
+📊 System Resources:
+   CPU Usage: 54.7%
+   Memory: 53.0% (16.9GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+📤 ASYNC RESPONSE:
+   The result of adding 25 and 37 is 62. When you multiply 62 by 4, you get 248.
+⏱️  Execution time: 26.328 seconds
+
+🔧 Async tool calls made:
+   - add: {'a': 25, 'b': 37}
+   - multiply: {'a': 62, 'b': 4}
+
+============================================================
+🧪 ASYNC TEST 4: Async MCP Tool Test - Weather Query
+🔍 Query: What's the weather like in Tokyo?
+🎯 Expected tools: get_weather
+============================================================
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:mcp.client.streamable_http:Received session ID: 1ad633ff200a41c5b2c120d2f03094fb
+INFO:mcp.client.streamable_http:Negotiated protocol version: 2025-06-18
+INFO:httpx:HTTP Request: GET http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 202 Accepted"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: DELETE http://localhost:8000/mcp "HTTP/1.1 200 OK"
+
+📊 System Resources:
+   CPU Usage: 23.4%
+   Memory: 52.8% (16.8GB)
+   Disk: 90.9% (432.2GB)
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+📤 ASYNC RESPONSE:
+   The weather in Tokyo is currently partly cloudy with a temperature of 75°F (24°C). The humidity is mild, and there are gentle winds.
+⏱️  Execution time: 4.578 seconds
+
+🔧 Async tool calls made:
+   - get_weather: {'location': 'Tokyo'}
+
+============================================================
+🧪 ASYNC TEST 5: Async Mixed Tools Test
+🔍 Query: Calculate the 12th Fibonacci number, format it in uppercase, and get weather for London       
+🎯 Expected tools: multiple tools
+============================================================
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:mcp.client.streamable_http:Received session ID: 33dfce1397ce4683ba2c2c96b17fc23d
+INFO:mcp.client.streamable_http:Negotiated protocol version: 2025-06-18
+INFO:httpx:HTTP Request: GET http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 202 Accepted"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: DELETE http://localhost:8000/mcp "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+📊 System Resources:
+   CPU Usage: 24.7%
+   Memory: 52.8% (16.8GB)
+   Disk: 90.9% (432.2GB)
+📤 ASYNC RESPONSE:
+   The 12th Fibonacci number is 144.
+
+Formatted in uppercase: **12TH FIBONACCI**
+
+Weather in London: Cloudy, 61°F (16°C), chance of light rain in the afternoon.
+⏱️  Execution time: 5.468 seconds
+
+🔧 Async tool calls made:
+   - calculate_fibonacci: {'n': 12}
+   - format_text_stylish: {'text': '12th Fibonacci', 'style': 'uppercase'}
+   - get_weather: {'location': 'London'}
+
+================================================================================
+🎉 ASYNC DEMONSTRATION COMPLETE!
+================================================================================
+
+📋 ASYNC PERFORMANCE METRICS:
+   ⏱️  Setup time: 35.360s
+   ⏱️  Agent creation: 20.281s
+   ⏱️  Demo execution: 46.266s
+   ⏱️  Total time: 101.907s
+
+📋 KEY ASYNC TAKEAWAYS:
+   ✅ All operations are fully asynchronous
+   ✅ Local and MCP tools execute with async parity
+   ✅ Server lifecycle managed asynchronously
+   ✅ Concurrent execution improves performance
+   ✅ Graceful async shutdown handling
+   ✅ Non-blocking I/O throughout the pipeline
+✅ Resource monitoring stopped
+
+🧹 Starting async cleanup...
+🧹 Shutting down all MCP servers...
+   Cancelling HTTP server: weather_server
+   Terminating stdio server: math_server
+   Terminating stdio server: weather_server
+✅ All servers shutdown complete
+✅ Async cleanup complete
+(lc-academy-env) PS C:\Users\panka\projects\langchain-academy\langchain-academy\langraph_example\MCP Example>

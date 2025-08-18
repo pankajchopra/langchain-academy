@@ -144,7 +144,7 @@ async def get_air_quality(location: str) -> str:
     
     return f"Air Quality in {location.title()}: {color} AQI {aqi_value} ({category})"
 
-async def main():
+def main():
     """Main async entry point for the weather MCP server."""
     port = int(os.getenv('MCP_SERVER_PORT', 8000))
     
@@ -153,7 +153,7 @@ async def main():
     
     try:
         # Run with streamable_http transport - enables async HTTP communication
-        await mcp.run(transport="streamable-http")
+        mcp.run(transport="streamable-http")
     except Exception as e:
         print(f"[Async-MCP-Weather] Error starting server: {e}", flush=True)
         sys.exit(1)

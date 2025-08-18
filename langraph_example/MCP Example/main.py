@@ -10,12 +10,16 @@ Demonstrates a unified approach to using:
 All operations are fully asynchronous for optimal performance.
 """
 
+import gc
 import os
+import tracemalloc
 import asyncio
 import subprocess
 import time
 import signal
 import sys
+import aiohttp
+from aiohttp import TCPConnector
 from typing import List, Any, Optional
 from contextlib import asynccontextmanager
 
@@ -189,19 +193,51 @@ async def setup_async_mcp_client() -> tuple[MultiServerMCPClient, List[Any]]:
     # Start MCP servers asynchronously
     print("🚀 Starting MCP servers...")
     
-    # Start stdio math server
-    stdio_task = asyncio.create_task(
-        server_manager.start_stdio_server("math_server", "stdio-math-mcp-server.py")
-    )
-    
-    # Start HTTP weather server  
-    http_task = asyncio.create_task(
-        server_manager.start_http_server("weather_server", "streamable-http-weather-mcp-server.py", 8000)
-    )
-    await asyncio.sleep(2)
-    # Wait for servers to be ready
-    await asyncio.gather(stdio_task, return_exceptions=True)
-    await asyncio.sleep(2)  # Give HTTP server extra time
+    try:
+        
+        from pathlib import Path
+        # Start HTTP weather server start application from this root directory
+        if Path("stdio-math-mcp-server.py").exists():
+            print("   Found stdio-math-mcp-server.py, starting HTTP server...")
+        else:
+            print("   WARNING: stdio-math-mcp-server.py not found, skipping HTTP server startup")
+            return None, []
+
+        
+       
+        # Check if the HTTP server script exists
+        if Path("streamable-http-weather-mcp-server.py").exists():
+            print("   Found streamable-http-weather-mcp-server.py, starting HTTP server...")
+        else:
+            print("   WARNING: streamable-http-weather-mcp-server.py not found, skipping HTTP server startup")
+            return None, []
+        async with asyncio.TaskGroup() as tg:
+            # Start stdio math server
+            stdio_task = asyncio.create_task(
+                server_manager.start_stdio_server("math_server", "stdio-math-mcp-server.py")
+            )
+            # Start the HTTP server task
+            http_task = asyncio.create_task(
+                server_manager.start_http_server("weather_server", "streamable-http-weather-mcp-server.py", 8000)
+            )
+            http_task.add_done_callback(lambda t: print(f"HTTP server task completed: {t.result()}"))
+        
+        # Wait for both servers to start
+        print("   Waiting for MCP servers to initialize...")
+        # Allow some time for servers to start
+        await asyncio.sleep(5)
+        # Wait for servers to be ready
+        await asyncio.gather(stdio_task, return_exceptions=True)
+        await asyncio.sleep(2)  # Give HTTP server extra time
+        
+    except asyncio.CancelledError:
+        print("⚠️  Server startup was cancelled")
+        raise
+    except Exception as e:
+        print(f"⚠️  Error starting MCP servers: {str(e)}")
+        print("   Attempting to continue with reduced functionality...")
+        # Optionally re-raise if you want to halt execution
+        # raise
     
     # Configuration for multiple MCP servers
     server_config = {
@@ -228,38 +264,74 @@ async def setup_async_mcp_client() -> tuple[MultiServerMCPClient, List[Any]]:
     # Get tools from all connected MCP servers
     print("🔍 Fetching tools from MCP servers...")
     try:
+        mcp_tools = None
         await asyncio.sleep(2)  # Wait for servers to stabilize
         mcp_tools = await client.get_tools()
-        await asyncio.sleep(2) 
+        print(f"   Raw MCP tools response: {mcp_tools}")  # Debug output
+    
         if not mcp_tools:
-            mcp_tools = load_mcp_tools(client)
-            raise RuntimeError("No tools retrieved from MCP servers")
+            print("⚠️  Warning: No tools retrieved from MCP servers")
+            print("   Checking individual server connections...")
+            mcp_tools = await client.get_tools()
+            # Try individual server connections
+            for server_name, config in server_config.items():
+                try:
+                    print(f"   Testing connection to {server_name}...")
+                    if config.get('transport') == 'stdio':
+                        # Check if stdio server process is running
+                        process = server_manager.servers.get(server_name)
+                        if process and process.returncode is None:
+                            print(f"   ✅ {server_name} process is running")
+                        else:
+                            print(f"   ❌ {server_name} process is not running")
+                    else:
+                        # Test HTTP server connection
+                        url = config.get('url')
+                        if url:
+                            async with aiohttp.ClientSession() as session:
+                                async with session.get(f"{url}/health") as response:
+                                    print(f"   {server_name} health check: {response.status}")
+                except Exception as server_error:
+                    print(f"   ❌ Error connecting to {server_name}: {server_error}")
+        
+                # Try restarting servers
+                print("   Attempting server restart...")
+                await server_manager.shutdown_all()
+                await asyncio.sleep(2)
+                await setup_async_mcp_client()
         
         print(f"✅ Retrieved {len(mcp_tools)} tools from MCP servers:")
         for tool in mcp_tools:
             print(f"   - {tool.name}: {tool.description}")
         if len(mcp_tools) <= 2:
             print(" only two tools available so shutting down and restarting...")
-        # Shutdown servers after fetching tools
-        await server_manager.shutdown_servers()
+            # Shutdown servers after fetching tools
+            await server_manager.shutdown_servers()
 
     except Exception as e:
         print(f"⚠️  Warning: Could not connect to MCP servers: {e}")
         print("   Continuing with local tools only...")
         mcp_tools = []
+        
     
     return client, mcp_tools
 
 # ============================================================================
 # SECTION 4: ASYNC UNIFIED TOOL REGISTRATION
 # ============================================================================
-async def create_async_unified_toolset() -> tuple[Optional[MultiServerMCPClient], List[Any]]:
+async def create_async_unified_toolset(existing_client: Optional[MultiServerMCPClient] = None) -> tuple[Optional[MultiServerMCPClient], List[Any]]:
     """Combine local tools and MCP tools into a single unified tool list."""
     print("\n🔧 Section 4: Creating ASYNC UNIFIED TOOLSET...")
-    
+    mcp_client, mcp_tools = None, None
     try:
-        # Get MCP tools asynchronously
-        mcp_client, mcp_tools = await setup_async_mcp_client()
+        if existing_client:
+            print("🔄 Using existing production MCP client")
+            mcp_client = existing_client
+            mcp_tools = await mcp_client.get_tools()
+        else:
+            # Get MCP tools asynchronously with new client
+            print("🔄 Not found production MCP client so creating a new development")
+            mcp_client, mcp_tools = await setup_async_mcp_client()
     except Exception as e:
         print(f"⚠️  Could not set up MCP client: {e}")
         print("   Continuing with local tools only...")
@@ -293,10 +365,20 @@ async def create_async_agent_with_toolnode(tools: List[Any]):
     
     # Use async-compatible model initialization
     # model = init_chat_model("gpt-5-nano-2025-08-07")
+    # Check for OpenAI API key
+    
+    openai_key = os.getenv('OPENAI_API_KEY')
+    
+    if openai_key:
+        print(f"✅ OPENAI_API_KEY available (last 4 chars: {openai_key[-4:]})")
+    else:
+        print("❌ OPENAI_API_KEY not found")
+
+    # Initialize the model
     model = init_chat_model(
-            model="gpt-5-nano-2025-08-07",
+            model="gpt-3.5-turbo",
             model_provider="openai",  # <-- specify provider
-            max_retries=3
+            max_retries=1
         )
     # Alternative async-friendly options:
     # model = init_chat_model("anthropic:claude-3-5-sonnet-latest")
@@ -482,11 +564,151 @@ async def cleanup_resources(mcp_client: Optional[MultiServerMCPClient]):
                 mcp_client.close()
         except Exception as e:
             print(f"⚠️  Warning during MCP client cleanup: {e}")
+            
+    # Clean up production deployment resources if in production mode
+    if os.getenv('ENVIRONMENT', 'development').lower() == 'production':
+        try:
+            await production_deployment.cleanup()
+        except Exception as e:
+            print(f"⚠️  Warning during production deployment cleanup: {e}")
     
     print("✅ Async cleanup complete")
 
 # ============================================================================
-# SECTION 8: MAIN ASYNC EXECUTION
+# SECTION 8: PRODUCTION DEPLOYMENT WITH CONNECTION POOLING
+# ============================================================================
+class AsyncProductionDeployment:
+    """Handles production-grade deployment with connection pooling."""
+    
+    def __init__(self):
+        self._session = None
+        self._pool = None
+        self.max_connections = 100
+        self.min_connections = 10
+        self.connection_timeout = 30
+        
+    async def setup_connection_pool(self):
+        """Initialize connection pool for production use."""
+        # import aiohttp
+        # from aiohttp import TCPConnector
+        
+        # Create connection pool with specified limits
+        self._pool = TCPConnector(
+            limit=self.max_connections,  # Max number of concurrent connections
+            limit_per_host=20,  # Max concurrent connections per host
+            keepalive_timeout=60,  # Keep connections alive for 60 seconds
+            enable_cleanup_closed=True  # Automatically cleanup closed connections
+        )
+        
+        # Create client session with connection pooling
+        self._session = aiohttp.ClientSession(
+            connector=self._pool,
+            timeout=aiohttp.ClientTimeout(total=self.connection_timeout),
+            headers={'Connection': 'keep-alive'}
+        )
+        
+        print(f"✅ Connection pool initialized with {self.max_connections} max connections")
+        return self._session
+    
+    async def get_client_session(self) -> aiohttp.ClientSession:
+        """Get or create a client session with connection pooling."""
+        if self._session is None or self._session.closed:
+            await self.setup_connection_pool()
+        return self._session
+    
+    async def create_production_mcp_client(self, server_config: dict) -> MultiServerMCPClient:
+        """Create MCP client with connection pooling for production use."""
+        session = await self.get_client_session()
+        
+        # Create MCP client with the pooled session
+        client = MultiServerMCPClient(
+            server_config,
+            session=session,
+            retry_config={
+                'max_retries': 3,
+                'backoff_factor': 1.5,
+                'retry_on_status': [500, 502, 503, 504]
+            }
+        )
+        
+        print("✅ Production MCP client created with connection pooling")
+        return client
+    
+    async def cleanup(self):
+        """Cleanup connection pool and sessions."""
+        if self._session and not self._session.closed:
+            await self._session.close()
+        if self._pool and not self._pool.closed:
+            await self._pool.close()
+        print("✅ Connection pool and sessions cleaned up")
+
+# Global production deployment instance
+production_deployment = AsyncProductionDeployment()
+
+# ============================================================================
+# SECTION 9: ASYNC RESOURCE MONITORING
+# ============================================================================
+class AsyncResourceMonitor:
+    """Monitors system resources asynchronously."""
+    
+    def __init__(self):
+        self.monitoring = False
+        self._task = None
+        self.metrics = {}
+        
+    async def get_system_metrics(self):
+        """Get current system metrics."""
+        import psutil
+        
+        cpu = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        return {
+            'cpu_percent': cpu,
+            'memory_percent': memory.percent,
+            'memory_used': memory.used / (1024 * 1024 * 1024),  # Convert to GB
+            'disk_percent': disk.percent,
+            'disk_used': disk.used / (1024 * 1024 * 1024)  # Convert to GB
+        }
+    
+    async def monitor_resources(self):
+        """Continuously monitor system resources."""
+        while self.monitoring:
+            self.metrics = await self.get_system_metrics()
+            print("\n📊 System Resources:")
+            print(f"   CPU Usage: {self.metrics['cpu_percent']}%")
+            print(f"   Memory: {self.metrics['memory_percent']}% ({self.metrics['memory_used']:.1f}GB)")
+            print(f"   Disk: {self.metrics['disk_percent']}% ({self.metrics['disk_used']:.1f}GB)")
+            await asyncio.sleep(5)  # Update every 5 seconds
+    
+    async def start(self):
+        """Start resource monitoring."""
+        try:
+            import psutil
+        except ImportError:
+            print("Installing psutil for resource monitoring...")
+            import subprocess
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
+            import psutil
+            
+        self.monitoring = True
+        self._task = asyncio.create_task(self.monitor_resources())
+        print("✅ Resource monitoring started")
+    
+    async def stop(self):
+        """Stop resource monitoring."""
+        if self.monitoring:
+            self.monitoring = False
+            if self._task:
+                await self._task
+            print("✅ Resource monitoring stopped")
+
+# Global resource monitor instance
+resource_monitor = AsyncResourceMonitor()
+
+# ============================================================================
+# SECTION 9: MAIN ASYNC EXECUTION
 # ============================================================================
 async def async_main():
     """Main async execution function demonstrating complete MCP integration."""
@@ -500,9 +722,24 @@ async def async_main():
         # Set up signal handlers
         await setup_signal_handlers()
         
+        # Start resource monitoring
+        await resource_monitor.start()
+        
+        # Initialize production deployment if in production mode
+        is_production = os.getenv('ENVIRONMENT', 'development').lower() == 'production'
+        if is_production:
+            print("🚀 Starting in PRODUCTION mode with connection pooling")
+            # Setup production client with connection pooling
+            #MAKE SURE ADD MCP_SERVER_URL to .env file
+            mcp_client = await production_deployment.create_production_mcp_client({
+                'server_url': os.getenv('MCP_SERVER_URL', 'http://localhost:8000'),
+                'timeout': 30
+            })
+        
         # Step 1: Create unified toolset asynchronously
         start_time = asyncio.get_event_loop().time()
-        mcp_client, unified_tools = await create_async_unified_toolset()
+        tracemalloc.start()
+        mcp_client, unified_tools = await create_async_unified_toolset(existing_client=mcp_client)
         setup_time = asyncio.get_event_loop().time() - start_time
         print(f"⏱️  Async setup completed in {setup_time:.3f} seconds")
         
@@ -540,31 +777,30 @@ async def async_main():
         print("\n⚠️  Interrupted by user")
     except Exception as e:
         print(f"\n❌ Error in async main execution: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        tracemalloc.print_exc()
     finally:
         # Always clean up resources
+        await resource_monitor.stop()
         await cleanup_resources(mcp_client)
 
 # ============================================================================
 # SECTION 9: ENTRY POINT WITH PROPER ASYNC HANDLING
 # ============================================================================
 def main():
+
     """Entry point that properly handles async execution."""
     print("🚀 Starting fully async demonstration...")
     
     try:
         # Python 3.7+ async entry point
-        if sys.version_info >= (3, 7):
-            asyncio.run(async_main())
-        else:
-            # Fallback for older Python versions
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(async_main())
+        asyncio.run(async_main())
     except KeyboardInterrupt:
         print("\n👋 Goodbye!")
     except Exception as e:
         print(f"❌ Fatal error: {e}")
+        asyncio.sleep(10)
+        tracemalloc.print_exc()
+        tracemalloc.stop()
         sys.exit(1)
 
 if __name__ == "__main__":
